@@ -1,26 +1,33 @@
-## First Simple Logistic Regression 
 
-```{r Regression}
-decem <- read.xlsx("short_decs.xlsx")
+###### TRAINING FIRST LOGISTIC MODEL ####
 
-#logistic_model <- glm(vs ~ wt + disp, data = train_reg, family = "binomial")
-#logistic_model
 
+```{r Logistic Model}
+
+## Read Dataset
+decem <- read.xlsx("../Data Set/short_decs.xlsx")
+
+
+## First Overview with simple Linear Regression
 linear_model <- lm(purchase ~ n + price + Clean_Time_Spent + unquie_brand + unique_products + unique_category, data = new_de)
 
 
-logistic_model <- glm(purchase ~ n + price + Clean_Time_Spent + unquie_brand + unique_products + unique_category, family = "binomial", data = new_de)
+## SPLIT DATESET INTO TRAIN AND TEST
+split(decem, train_decem[0.8], test_decem[0.2])
 
 
+#### Train Logistic MODEL 1 - CONSUMERS PURCHASE 
+logistic_model <- lrm(purchase ~ n + price + Clean_Time_Spent + unquie_brand + unique_products + unique_category, family = "binomial", data = train_decem)
 
-logistic_model <- lrm(purchase ~ n + price + Clean_Time_Spent + unquie_brand + unique_products + unique_category, x =T, y=T, data = decem)
+
+#### Train Logistic MODEL 2 - CONSUMERS ABANDONED CARTS
+logistic_model2 <- lrm(Abandoned_Cart ~ n + price + Clean_Time_Spent + unquie_brand + unique_products + unique_category + Time_Day, x =T, y=T, data = train_decem)
 
 
-logistic_model1 <- lrm(purchase ~ n + price + Clean_Time_Spent + unquie_brand + unique_products + unique_category + Time_Day, x =T, y=T, data = decem)
+#### Train Logistic MODEL 3 - CONSUMERS ADD TO CARTS
+logistic_model3 <- lrm(cart ~ n + price + Clean_Time_Spent + unquie_brand + unique_products + unique_category + Time_Day, x =T, y=T, data = train_decem)
 
-logistic_model2 <- lrm(Abandoned_Cart ~ n + price + Clean_Time_Spent + unquie_brand + unique_products + unique_category + Time_Day, x =T, y=T, data = decem)
 
-logistic_model3 <- lrm(cart ~ n + price + Clean_Time_Spent + unquie_brand + unique_products + unique_category + Time_Day, x =T, y=T, data = decem)
 
 logistic_model1
 logistic_model2
