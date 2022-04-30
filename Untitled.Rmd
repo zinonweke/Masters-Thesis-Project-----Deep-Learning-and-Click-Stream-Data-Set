@@ -42,8 +42,7 @@ decs$event_time <- timer                                        ## Assign the co
 
 
 
-    
-
+   
                Number 2  ####### Event_Type ###########################
                ########################################################
                ########################################################
@@ -59,12 +58,7 @@ decs <- decs %>% mutate(event_type = ifelse(event_type == "remove_from_cart", 0,
                      mutate(event_type = ifelse(event_type == "cart", 2, event_type)) %>%
                      mutate(event_type = ifelse(event_type == "purchase", 1, event_type))
         -- ## Convert the event_types to numeric variables
-decs$event_type <- as.numeric(decs$event_type)
 
-head(decs)
-
-
-                
 
 
                Number 3  ####### Number of Clicks Per Section ########
@@ -85,8 +79,7 @@ tools <- left_join(tool, tools, "user_session")     ## joins the session counts 
 head(tools)
 
 
-               
-
+              
 
                Number 4  ####### Times of the Day #####################
                ########################################################
@@ -132,7 +125,6 @@ try1 <- try %>% mutate(num_timing = ifelse(num_timing >= 0 & num_timing < 60000,
     mutate(num_timing = ifelse(num_timing >= 60000 & num_timing < 120000, 1, num_timing)) %>% 
     mutate(num_timing = ifelse(num_timing >= 120000 & num_timing < 180000, 2, num_timing)) %>%
     mutate(num_timing = ifelse(num_timing >= 180000 & num_timing < 240000, 3, num_timing))
-
 
 
 
@@ -185,7 +177,6 @@ new_decs <- left_join(decs, fo, "user_session")     ## joins the session counts 
 # decs <- new_decs                                    ## Reassign
 
 
-
 ############### Add Time of the day
 ### Clean_Up - Remove Dates
 times <- substr(new_decs[, 1], 11, 19)
@@ -216,7 +207,6 @@ new_decs <- new_de
 
 
 
-
 ############### Add Time Spent Per Session
 ## Convert Event Time
 new_decs <- new_decs %>% mutate(Converted_Time = strptime(event_time, format = "%Y-%m-%d %H:%M:%S", tz = "UTC")) 
@@ -228,7 +218,6 @@ newer_decs <- new_decs %>% mutate(Time_Spent = (difftime(ender, starter, tz = "U
     mutate(Clean_Time_Spent = round(as.numeric(Time_Spent), 2))
 
 head(newer_decs)
-
 
 
 ##################### Add Number of Products Views; brands viewed and categories viewed per session
