@@ -1,0 +1,371 @@
+---
+
+---
+```{r Working Directory and Library}
+## Working Directory
+setwd("/Users/macbookpro/Documents/Data Set")
+
+## Library
+library(openxlsx)
+library(tidyverse)
+library(tidyr)
+library(rms)
+
+```
+
+
+```{r Importing/Reading the Data}
+
+## Read DataSet
+dec <-read.csv("2019-Dec.csv")
+head(dec)
+
+decs <- decss ## Have a backup
+decss <- full_join(head(dec, 250000), tail(dec, 250000))
+
+?join
+head(decss)
+
+decs%>%count(event_type)
+```
+
+
+```{r Data Cleaning and Preparation}
+                    Number 1 ####### Event_Time ######################
+                    ##################################################
+                    ##################################################
+####### ------ Convert Event_Time to Date class #######
+
+timer <- strptime(decs$event_time, format = "%Y-%m-%d %H:%M:%S") ## Convert the column only in a different vector
+
+decs$event_time <- timer                                        ## Assign the converted vector to event_time column
+
+
+
+    
+
+               Number 2  ####### Event_Type ###########################
+               ########################################################
+               ########################################################
+###       ------ Convert the Event_Type to Dummy/Categorical Variables ####
+
+## Purchase - 1
+## Cart - 2
+## View - 3
+## Remove from cart - 0
+        -- ## Change the event_types to above numeric categories
+decs <- decs %>% mutate(event_type = ifelse(event_type == "remove_from_cart", 0, event_type)) %>%
+                     mutate(event_type = ifelse(event_type == "view", 3, event_type)) %>%
+                     mutate(event_type = ifelse(event_type == "cart", 2, event_type)) %>%
+                     mutate(event_type = ifelse(event_type == "purchase", 1, event_type))
+        -- ## Convert the event_types to numeric variables
+decs$event_type <- as.numeric(decs$event_type)
+
+head(decs)
+
+
+                
+
+
+               Number 3  ####### Number of Clicks Per Section ########
+               #######################################################
+               #######################################################
+#           --------- Count the unique number of each sessions 
+
+############################### First 100 rows for testing ##################
+tool <- head(decs, 100)                                 ## First 100 rows
+head(tool)
+
+trial <- tail(dec, 100)
+
+
+################# Count Number of Clicks #################
+tools <- tool %>% group_by(user_session) %>% tally()   ## Count the unique number of each sessions
+tools <- left_join(tool, tools, "user_session")     ## joins the session counts to the main session
+head(tools)
+
+
+               
+
+
+               Number 4  ####### Times of the Day #####################
+               ########################################################
+               ########################################################
+################# Remove the dates charaters ##################
+time <- substr(tools[, 1], 11, 19)                      ## Cuts out the date values
+try1 <- trial %>% mutate(timer = time)
+head (try1)
+
+## Tail 
+time_tail <- substr(trial[, 1], 11, 19)
+time_tail <- trial %>% mutate(timer = time_tail)
+head (time_tail)
+
+
+################# Remove the Semi-Columns ##################
+try <- try1 %>% mutate(timing = gsub(":", "", timer))                   ## Remove semi-columns 
+try <- try %>% mutate(num_timing = as.numeric(gsub(":", "", timing)))   ## Converts to number
+head(try)
+
+## Tail
+trial <- time_tail %>% mutate(timing = gsub(":", "", timer))
+trial <- trial %>% mutate(num_timing = as.numeric(gsub(":", "", timing)))
+head(trial)
+
+
+################# Extract Time of the Day ##################
+try1 <- try %>% mutate(time_day = ifelse(timing < "060000", "mid_night", timing))
+head(try1)
+tail(decs)
+
+## Trial - Time of Day
+try1 <- trial %>% mutate(time_day = ifelse(num_timing < 60000, "mid_night", num_timing))
+head(try1)
+
+## Time of the day
+## Early Morning - 0
+## Morning - 1
+## Day - 2
+## Night - 3
+try <- head(new_decs, 100000) 
+try1 <- try %>% mutate(num_timing = ifelse(num_timing >= 0 & num_timing < 60000, 0, num_timing)) %>%
+    mutate(num_timing = ifelse(num_timing >= 60000 & num_timing < 120000, 1, num_timing)) %>% 
+    mutate(num_timing = ifelse(num_timing >= 120000 & num_timing < 180000, 2, num_timing)) %>%
+    mutate(num_timing = ifelse(num_timing >= 180000 & num_timing < 240000, 3, num_timing))
+
+
+
+
+               Number 5 ####### Times Spent Per Session ###############
+               ########################################################
+               ########################################################
+            
+
+######### Time Spent ############# 
+new_try <- head(decs, 1000)
+head (new_try)
+
+new1 <- new_try %>% mutate(Time = strptime(event_time, format = "%Y-%m-%d %H:%M:%S", tz = "UTC"))
+head(new1)
+
+chus <- new1 %>% group_by(user_session) %>% mutate(starter = min(Time), ender = max(Time)) %>% 
+    mutate(Time_Spent = (difftime(ender, starter, tz = "UTC", units = "mins"))) %>% 
+    mutate(Clean_Time_Spent = round(as.numeric(Time_Spent), 2))
+
+difftime(spent$session_start[1], spent$session_end[1], tz = "UTC", units = "secs")
+
+chus <- chus1   
+
+
+            Number 6 ######### Number of Brands Viewed Per Session ###
+            ##########################################################
+            #############
+viewed <- chus1 %>% group_by(user_session) %>% summarise(unquie_brand = n_distinct(brand), unique_products = n_distinct(product_id), unique_category = n_distinct(category_id))
+head(viewed)
+
+hu <- chus1 %>% filter(user_session == "1512be50-d0fd-4a92-bcd8-3ea3943f2a3b")
+
+chus2 <- chus1 %>% mutate(pactions = ifelse(event_type == "purchase", 1, 0))
+head(chus2)
+
+new_decs %>% count(event_type)
+
+trial <- tail(dec, 100)
+```
+
+
+```{r Data Cleaning and Preparation - To the Whole Dataset}
+
+##################################### To the whole dataset ################################
+
+
+############ Add number of user clicks
+fo <- decs %>% group_by(user_session) %>% tally()   ## Count the unique number of each sessions
+new_decs <- left_join(decs, fo, "user_session")     ## joins the session counts to the main session
+# decs <- new_decs                                    ## Reassign
+
+
+
+############### Add Time of the day
+### Clean_Up - Remove Dates
+times <- substr(new_decs[, 1], 11, 19)
+new_decs <- new_decs %>% mutate(timer = times)
+
+## Clean_Up - Remove Semi Colons and Convert to Numbers
+new_decs <- new_decs %>% mutate(timer = gsub(":", "", timer)) %>% mutate(timer = as.numeric(gsub(":", "", timer)))
+
+#### Time of the day
+## Early Morning - 0
+## Morning - 1
+## Day - 2
+## Night - 3
+
+### Assign Values to Different Time Periods
+new_decs <- new_decs %>% mutate(timer = ifelse(timer >= 0 & timer < 60000, 0, timer)) %>%
+    mutate(timer = ifelse(timer >= 60000 & timer < 120000, 1, timer)) %>% 
+    mutate(timer = ifelse(timer >= 120000 & timer < 180000, 2, timer)) %>%
+    mutate(timer = ifelse(timer >= 180000 & timer < 240000, 3, timer)) 
+
+##### Rename the Time Periods Appropriately
+new_de <- new_decs %>% mutate(Time_Day = ifelse(timer == 0, "Over Night", timer)) %>%
+    mutate(Time_Day = ifelse(Time_Day == 1, "Morning", Time_Day)) %>%
+    mutate(Time_Day = ifelse(Time_Day == 2, "Afternoon", Time_Day)) %>%
+    mutate(Time_Day = ifelse(Time_Day == 3, "Night", Time_Day))
+head(new_de)
+new_decs <- new_de
+
+
+
+
+############### Add Time Spent Per Session
+## Convert Event Time
+new_decs <- new_decs %>% mutate(Converted_Time = strptime(event_time, format = "%Y-%m-%d %H:%M:%S", tz = "UTC")) 
+
+new_decs <- new_decs %>% group_by(user_session) %>% mutate(starter = min(Converted_Time), ender = max(Converted_Time))
+
+#newer_decs <- head(new_decs, 200000)
+newer_decs <- new_decs %>% mutate(Time_Spent = (difftime(ender, starter, tz = "UTC", units = "mins"))) %>% 
+    mutate(Clean_Time_Spent = round(as.numeric(Time_Spent), 2))
+
+head(newer_decs)
+
+
+
+##################### Add Number of Products Views; brands viewed and categories viewed per session
+## Create columns to count the numbers of views per session
+viewed <- newer_decs %>% group_by(user_session) %>% summarise(unquie_brand = n_distinct(brand), unique_products = n_distinct(product_id), unique_category = n_distinct(category_id))
+
+## joins the session counts to the main session
+news_dec <- left_join(newer_decs, viewed, "user_session")
+
+# head(news_dec)
+
+
+
+#################### Add Binary Columns For Regression
+## For Purchase Only
+new_de <- news_dec %>% mutate(purchase = ifelse(event_type == "purchase", 1, 0))
+
+## For Cart
+new_de <- new_de %>% mutate(cart = ifelse(event_type == "cart", 1, 0))
+
+## For Remove From Cart
+new_de <- new_de %>% mutate(Abandoned_Cart = ifelse(event_type == "remove_from_cart", 1, 0))
+
+```
+
+
+
+```{r Summary Statistics}
+## Percent of Day Time
+day_dist <- new_decs %>% count(num_timing)
+day_dist %>% mutate(percent = round(n/sum(n) * 100, 2))
+
+## Percentage of Day Time to Event Time
+try <- head(new_decs, 100000)
+disc <- try %>% group_by(num_timing) %>% count(event_type)
+disc <- new_decs %>% group_by(Time_Day) %>% count(event_type)
+# Percent
+disc_dist <- disc %>% mutate(percent = round(n/sum(n) * 100, 2))
+disc_dist
+
+
+## Summary Statistics
+n_distinct(dec$event_type)
+n_distinct(dec$user_id)
+n_distinct(dec$user_session)
+n_distinct(dec$brand)
+n_distinct(dec$category_id)
+n_distinct(dec$category_code)
+
+
+n_distinct(dec$event_time)
+
+dec %>% count(category_code)
+
+nrow(dec)
+class(dec$event_time)
+
+summary(dec)
+dec %>% count(event_type)
+tail(dec, 2000) %>% count(category_code)
+
+```
+
+```{r}
+# load ggplot2
+library(ggplot2)
+library(hrbrthemes)
+
+# A basic scatterplot with color depending on Species
+ggplot(iris, aes(x=Sepal.Length, y=Sepal.Width, shape=Species, alpha=Species, size=Species, color=Species)) + 
+    geom_point() +
+    theme_ipsum()
+head(iris)
+
+ggplot(decem, aes(x=Time_Day, y=Clean_Time_Spent, shape=event_type, alpha=event_type, size=event_type, color=event_type)) + 
+    geom_point() +
+    theme_ipsum()
+
+decs <- head(decem, 250000)
+ggplot(decs, aes(x=event_type, y=Clean_Time_Spent, color=Time_Day)) + 
+    geom_point(size=6) +
+    theme_ipsum()
+
+head(decem)
+
+
+```
+
+
+
+```{r Regression}
+decem <- read.xlsx("short_decs.xlsx")
+
+#logistic_model <- glm(vs ~ wt + disp, data = train_reg, family = "binomial")
+#logistic_model
+
+linear_model <- lm(purchase ~ n + price + Clean_Time_Spent + unquie_brand + unique_products + unique_category, data = new_de)
+
+
+logistic_model <- glm(purchase ~ n + price + Clean_Time_Spent + unquie_brand + unique_products + unique_category, family = "binomial", data = new_de)
+
+
+
+logistic_model <- lrm(purchase ~ n + price + Clean_Time_Spent + unquie_brand + unique_products + unique_category, x =T, y=T, data = decem)
+
+
+logistic_model1 <- lrm(purchase ~ n + price + Clean_Time_Spent + unquie_brand + unique_products + unique_category + Time_Day, x =T, y=T, data = decem)
+
+logistic_model2 <- lrm(Abandoned_Cart ~ n + price + Clean_Time_Spent + unquie_brand + unique_products + unique_category + Time_Day, x =T, y=T, data = decem)
+
+logistic_model3 <- lrm(cart ~ n + price + Clean_Time_Spent + unquie_brand + unique_products + unique_category + Time_Day, x =T, y=T, data = decem)
+
+logistic_model1
+logistic_model2
+logistic_model3
+
+
+head(new_de)
+
+result <- summary(logistic_model)
+
+decem %>% count(category_code)
+result
+
+head(decem)
+
+```
+
+
+```{r Count Unique sections}
+```
+
+
+```{r }
+
+
+```
+
+
+```{r Count Unique sections}
