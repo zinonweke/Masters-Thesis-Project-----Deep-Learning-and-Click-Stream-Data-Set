@@ -1,0 +1,39 @@
+## First Simple Logistic Regression 
+
+```{r Regression}
+decem <- read.xlsx("short_decs.xlsx")
+
+#logistic_model <- glm(vs ~ wt + disp, data = train_reg, family = "binomial")
+#logistic_model
+
+linear_model <- lm(purchase ~ n + price + Clean_Time_Spent + unquie_brand + unique_products + unique_category, data = new_de)
+
+
+logistic_model <- glm(purchase ~ n + price + Clean_Time_Spent + unquie_brand + unique_products + unique_category, family = "binomial", data = new_de)
+
+
+
+logistic_model <- lrm(purchase ~ n + price + Clean_Time_Spent + unquie_brand + unique_products + unique_category, x =T, y=T, data = decem)
+
+
+logistic_model1 <- lrm(purchase ~ n + price + Clean_Time_Spent + unquie_brand + unique_products + unique_category + Time_Day, x =T, y=T, data = decem)
+
+logistic_model2 <- lrm(Abandoned_Cart ~ n + price + Clean_Time_Spent + unquie_brand + unique_products + unique_category + Time_Day, x =T, y=T, data = decem)
+
+logistic_model3 <- lrm(cart ~ n + price + Clean_Time_Spent + unquie_brand + unique_products + unique_category + Time_Day, x =T, y=T, data = decem)
+
+logistic_model1
+logistic_model2
+logistic_model3
+
+
+head(new_de)
+
+result <- summary(logistic_model)
+
+decem %>% count(category_code)
+result
+
+head(decem)
+
+```
