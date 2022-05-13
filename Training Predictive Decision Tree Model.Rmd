@@ -1,0 +1,68 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+```{r Deploying Decision Tree Predictive Model}
+
+## Working Directory
+setwd("/Users/macbookpro/Documents/Data Set")
+
+## Loading Decision tree library
+library("data.tree")
+library("rpart.plot")
+library("caret")
+
+
+## Load Data
+data <-read.csv("2019-Dec.csv")
+head(data)
+
+## Select Columns
+datas <- data %>% select(purchase, unique_category, unique_products, unquie_brand, Clean_Time_Spent, timer, n, price, Abandoned_Cart, cart)
+
+## Hot Data Encoding
+datas$purchase <- as.factor(datas$purchase)
+datas$timer <- as.factor(datas$timer)
+datas$Abandoned_Cart <- as.factor(datas$Abandoned_Cart)
+datas$cart <- as.factor(datas$cart)
+
+## Structure of the Data
+str(datas)
+
+
+## Split the data into test and trainig set 
+set.seed(12)
+split <- sample.split(datas$purchase, SplitRatio = 0.8)
+train <- subset(datas, split == TRUE) ## Training Set
+test <- subset(datas, split == FALSE) ## Test Set
+
+
+## Train the decision tree model
+tree.event.type <- rpart(purchase ~., data = train)
+tree.abandon <- rpart(Abandoned_Cart ~., data = train)
+
+#tree.purchase <- rpart(SeS_Purchase ~ Count_Carts + Count_Views + unique_category + unique_products + unquie_brand + Clean_Time_Spent + n + price + Abandoned_Cart, data = train)
+
+#tree.abandon <- rpart(Abandoned_Cart ~ Count_Carts + Count_Views + unique_category + unique_products + unquie_brand + Clean_Time_Spent + n + price + SeS_Purchase, data = train)
+
+## View Model Result
+summary(tree.purchase)
+
+
+## Test Prediction on the Test Set
+purchase_predict <- predict(tree.event.type, test, type = "class")
+
+tree.purchase.abandon <- predict(tree.abandon, test, type = "class")
+
+
+## Confusion Matrix for Evaluating Model
+confusionMatrix(tree.eventtype.predict, test$event_type)
+confusionMatrix(tree.abandon, test$Abandoned_Cart)
+
+
+## Visualize Decision Tree
+prp(tree.event.type)
+prp(tree.abandon)
+
+```
+
